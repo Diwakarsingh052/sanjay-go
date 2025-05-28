@@ -10,7 +10,7 @@ import (
 func main() {
 	wg := new(sync.WaitGroup)
 	ctx := context.Background()
-	ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 	ch := make(chan int)
 
@@ -23,9 +23,15 @@ func main() {
 			// If the context was cancelled or timeout occurred, just return
 			return
 		}
+		_ = x
+
+		time.Sleep(3 * time.Second)
+
 		select {
 		case ch <- x: // Send the value if receiver is ready
+			fmt.Println("finalizing things")
 		case <-ctx.Done(): // If context expired while trying to send, just return
+			fmt.Println("go routine can't finish in time")
 			return
 		}
 	}()
@@ -49,7 +55,7 @@ func main() {
 }
 
 func slowFuncV2(ctx context.Context) (int, error) {
-	time.Sleep(time.Second * 3)
+	time.Sleep(time.Second * 1)
 
 	select {
 	default:
